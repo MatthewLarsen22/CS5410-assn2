@@ -1,0 +1,11 @@
+div {
+    padding: 4px;
+}
+
+button {
+    background-color: #bffdff;
+    border-radius: 16px;
+    width: 120px;
+    height: 64px;
+    margin: 2px;
+}
