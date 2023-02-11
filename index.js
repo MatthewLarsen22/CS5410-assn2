@@ -1,4 +1,5 @@
 let inputBuffer = {};
+
 let startTime = null;
 let timerDisplay = null;
 let minutes = null;
@@ -9,9 +10,11 @@ let score = 1000;
 let canvas = null;
 let context = null;
 
-
 const COORD_SIZE = 1024;
 const COORD_X_OFFSET = 448;
+
+let cellsInRow = 20;
+let cellsInCol = 20;
 
 let imgFloor = new Image();
 imgFloor.isReady = false;
@@ -21,11 +24,12 @@ imgFloor.onload = function() {
 imgFloor.src = 'floor.png';
 
 let maze = [];
-for (let row = 0; row < 3; row++) {
+
+for (let row = 0; row < cellsInRow; row++) {
     maze.push([]);
-    for (let col = 0; col < 3; col++) {
+    for (let col = 0; col < cellsInCol; col++) {
         maze[row].push({
-            x: col, y: row, edges: {
+            x: col, y: row, added: false, edges: {
                 north: null,
                 south: null,
                 east: null,
@@ -35,64 +39,110 @@ for (let row = 0; row < 3; row++) {
     }
 }
 
-maze[0][0].edges.south = maze[1][0];
+function generateMaze(){
+    frontier = [];
 
-maze[0][1].edges.south = maze[1][1];
-maze[0][1].edges.east = maze[0][2];
+    maze[0][0].added = true;
+    frontier.push(maze[0][1]);
+    frontier.push(maze[1][0]);
 
-maze[0][2].edges.west = maze[0][1];
-maze[0][2].edges.south = maze[1][2];
+    while(frontier.length > 0){
+        let randomIndex = Math.floor(Math.random() * frontier.length);
+        let cellToBeAdded = frontier[randomIndex];
+        console.log(cellToBeAdded);
 
-maze[1][0].edges.north = maze[0][0];
-maze[1][0].edges.east = maze[1][1];
-maze[1][0].edges.south = maze[2][0];
+        // Randomly select and remove an edge connecting the cell to be added to cells already existing in the maze
+        let edgeRemoved = false;
+        while (! edgeRemoved){
+            switch (Math.floor(Math.random() * 4)){
+                case 0:
+                    if (cellToBeAdded.edges.north === null && cellToBeAdded.y > 0 && maze[cellToBeAdded.y - 1][cellToBeAdded.x].added){
+                        maze[cellToBeAdded.y][cellToBeAdded.x].edges.north = maze[cellToBeAdded.y - 1][cellToBeAdded.x];
+                        maze[cellToBeAdded.y - 1][cellToBeAdded.x].edges.south = maze[cellToBeAdded.y][cellToBeAdded.x];
+                        edgeRemoved = true;
+                    }
+                    break;
+                case 1:
+                    if (cellToBeAdded.edges.south === null && cellToBeAdded.y < cellsInCol - 1 && maze[cellToBeAdded.y + 1][cellToBeAdded.x].added){
+                        maze[cellToBeAdded.y][cellToBeAdded.x].edges.south = maze[cellToBeAdded.y + 1][cellToBeAdded.x];
+                        maze[cellToBeAdded.y + 1][cellToBeAdded.x].edges.north = maze[cellToBeAdded.y][cellToBeAdded.x];
+                        edgeRemoved = true;
+                    }
+                    break;
+                case 2:
+                    if (cellToBeAdded.edges.east === null && cellToBeAdded.x < cellsInRow - 1 && maze[cellToBeAdded.y][cellToBeAdded.x + 1].added){
+                        maze[cellToBeAdded.y][cellToBeAdded.x].edges.east = maze[cellToBeAdded.y][cellToBeAdded.x + 1];
+                        maze[cellToBeAdded.y][cellToBeAdded.x + 1].edges.west = maze[cellToBeAdded.y][cellToBeAdded.x];
+                        edgeRemoved = true;
+                    }
+                    break;
+                case 3:
+                    if (cellToBeAdded.edges.west === null && cellToBeAdded.x > 0 && maze[cellToBeAdded.y][cellToBeAdded.x - 1].added){
+                        maze[cellToBeAdded.y][cellToBeAdded.x].edges.west = maze[cellToBeAdded.y][cellToBeAdded.x - 1];
+                        maze[cellToBeAdded.y][cellToBeAdded.x - 1].edges.east = maze[cellToBeAdded.y][cellToBeAdded.x];
+                        edgeRemoved = true;
+                    }
+                    break;
+            }
+        }
 
-maze[1][1].edges.north = maze[0][1];
-maze[1][1].edges.south = maze[2][1];
-maze[1][1].edges.west = maze[1][0];
+        // Add the cell to the maze
+        maze[cellToBeAdded.y][cellToBeAdded.x].added = true;
 
-maze[1][2].edges.north = maze[0][2];
+        // Remove the cell to be added from the frontier
+        frontier.splice(randomIndex, 1);
 
-maze[2][0].edges.north = maze[1][0];
+        // Add the cell's neighbors to the frontier if they are not already a part of the maze or the frontier
+        if (cellToBeAdded.y > 0 && !frontier.includes(maze[cellToBeAdded.y - 1][cellToBeAdded.x]) && maze[cellToBeAdded.y - 1][cellToBeAdded.x].added === false){
+            frontier.push(maze[cellToBeAdded.y - 1][cellToBeAdded.x]);
+        }
+        if (cellToBeAdded.y < cellsInRow - 1 && !frontier.includes(maze[cellToBeAdded.y + 1][cellToBeAdded.x]) && maze[cellToBeAdded.y + 1][cellToBeAdded.x].added === false){
+            frontier.push(maze[cellToBeAdded.y + 1][cellToBeAdded.x]);
+        }
+        if (cellToBeAdded.x > 0 && !frontier.includes(maze[cellToBeAdded.y][cellToBeAdded.x - 1]) && maze[cellToBeAdded.y][cellToBeAdded.x - 1].added === false){
+            frontier.push(maze[cellToBeAdded.y][cellToBeAdded.x - 1]);
+        }
+        if (cellToBeAdded.x < cellsInCol - 1 && !frontier.includes(maze[cellToBeAdded.y][cellToBeAdded.x + 1]) && maze[cellToBeAdded.y][cellToBeAdded.x + 1].added === false){
+            frontier.push(maze[cellToBeAdded.y][cellToBeAdded.x + 1]);
+        }
+    }
+}
 
-maze[2][1].edges.north = maze[1][1];
-maze[2][1].edges.east = maze[2][2];
-
-maze[2][2].edges.west = maze[2][1];
 
 function drawCell(cell) {
 
     if (imgFloor.isReady) {
         context.drawImage(imgFloor,
-        COORD_X_OFFSET + (cell.x * (COORD_SIZE / 3)), cell.y * (COORD_SIZE / 3),
-        COORD_SIZE / 3 + 0.5, COORD_SIZE / 3 + 0.5);
+        COORD_X_OFFSET + (cell.x * (COORD_SIZE / cellsInRow)), cell.y * (COORD_SIZE / cellsInCol),
+        COORD_SIZE / cellsInRow + 0.5, COORD_SIZE / cellsInCol + 0.5);
     }
 
     if (cell.edges.north === null) {
-        context.moveTo(COORD_X_OFFSET + (cell.x * (COORD_SIZE / 3)), cell.y * (COORD_SIZE / 3));
-        context.lineTo(COORD_X_OFFSET + ((cell.x + 1) * (COORD_SIZE / 3)), cell.y * (COORD_SIZE / 3));
+        context.moveTo(COORD_X_OFFSET + (cell.x * (COORD_SIZE / cellsInRow)), cell.y * (COORD_SIZE / cellsInCol));
+        context.lineTo(COORD_X_OFFSET + ((cell.x + 1) * (COORD_SIZE / cellsInRow)), cell.y * (COORD_SIZE / cellsInCol));
     }
 
     if (cell.edges.south === null) {
-            context.moveTo(COORD_X_OFFSET + (cell.x * (COORD_SIZE / 3)), (cell.y + 1) * (COORD_SIZE / 3));
-            context.lineTo(COORD_X_OFFSET + ((cell.x + 1) * (COORD_SIZE / 3)), (cell.y + 1) * (COORD_SIZE / 3));
+            context.moveTo(COORD_X_OFFSET + (cell.x * (COORD_SIZE / cellsInRow)), (cell.y + 1) * (COORD_SIZE / cellsInCol));
+            context.lineTo(COORD_X_OFFSET + ((cell.x + 1) * (COORD_SIZE / cellsInRow)), (cell.y + 1) * (COORD_SIZE / cellsInCol));
     }
 
     if (cell.edges.east === null) {
-            context.moveTo(COORD_X_OFFSET + ((cell.x + 1) * (COORD_SIZE / 3)), cell.y * (COORD_SIZE / 3));
-            context.lineTo(COORD_X_OFFSET + ((cell.x + 1) * (COORD_SIZE / 3)), (cell.y + 1) * (COORD_SIZE / 3));
+            context.moveTo(COORD_X_OFFSET + ((cell.x + 1) * (COORD_SIZE / cellsInRow)), cell.y * (COORD_SIZE / cellsInCol));
+            context.lineTo(COORD_X_OFFSET + ((cell.x + 1) * (COORD_SIZE / cellsInRow)), (cell.y + 1) * (COORD_SIZE / cellsInCol));
     }
 
     if (cell.edges.west === null) {
-            context.moveTo(COORD_X_OFFSET + (cell.x * (COORD_SIZE / 3)), cell.y * (COORD_SIZE / 3));
-            context.lineTo(COORD_X_OFFSET + (cell.x * (COORD_SIZE / 3)), (cell.y + 1) * (COORD_SIZE / 3));
+            context.moveTo(COORD_X_OFFSET + (cell.x * (COORD_SIZE / cellsInRow)), cell.y * (COORD_SIZE / cellsInCol));
+            context.lineTo(COORD_X_OFFSET + (cell.x * (COORD_SIZE / cellsInRow)), (cell.y + 1) * (COORD_SIZE / cellsInCol));
     }
 }
 
 function renderCharacter(character) {
     if (character.image.isReady) {
         context.drawImage(character.image,
-        COORD_X_OFFSET + (character.location.x * (COORD_SIZE / 3)), character.location.y * (COORD_SIZE / 3))
+        COORD_X_OFFSET + (character.location.x * (COORD_SIZE / cellsInRow)), character.location.y * (COORD_SIZE / cellsInCol),
+        COORD_SIZE / cellsInRow + 0.5, COORD_SIZE / cellsInCol + 0.5);
     }
 }
 
@@ -129,8 +179,8 @@ function moveCharacter(key, character) {
 function renderMaze() {
     // Render the cells first
     context.beginPath();
-    for (let row = 0; row < 3; row++) {
-        for (let col = 0; col < 3; col++) {
+    for (let row = 0; row < cellsInRow; row++) {
+        for (let col = 0; col < cellsInCol; col++) {
             drawCell(maze[row][col]);
         }
     }
@@ -186,6 +236,8 @@ function initialize() {
 
     canvas = document.getElementById('canvas-main');
     context = canvas.getContext('2d');
+
+    generateMaze();
 
     window.addEventListener('keydown', function(event) {
         inputBuffer[event.key] = event.key;
