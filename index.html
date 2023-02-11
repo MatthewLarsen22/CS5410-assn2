@@ -5,27 +5,27 @@
     <link rel="stylesheet" href="index.css">
     <script src="index.js"></script>
 </head>
-<body onload="gameLoop()">
-    <div style="background-color: Blue; display: flex; flex-direction: row; justify-content: space-between;">
-        <div style="background-color: Red;">
+<body onload="initialize()">
+    <div style="display: flex; flex-direction: row;">
+        <div style="display: flex; justify-content: center; width: 20%;">
             <h2>
                 Time: 00:38
             </h2>
         </div>
-        <div style="background-color: Yellow;">
+        <div style="display: flex; justify-content: center; width: 60%;">
             <h1>
                 Matthew's Maze
             </h1>
         </div>
-        <div style="background-color: Green;">
+        <div style="display: flex; justify-content: center; width: 20%;">
             <h2>
                 Score: 101
             </h2>
         </div>
     </div>
-    <div style="background-color: Blue; display: flex; flex-direction: row; justify-content: space-between;">
-        <div style="background-color: Red; display: flex; flex-direction: column;">
-            <h3 style="text-align: center">
+    <div style="display: flex; flex-direction: row;">
+        <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; width: 20%">
+            <h3>
                 New Map
             </h3>
             <button>
@@ -41,13 +41,12 @@
                 20x20
             </button>
         </div>
-        <div style="background-color: Yellow;">
-            <h1>
-                Matthew's Maze
-            </h1>
+
+        <div style="width: 60%;">
+            <canvas id = "canvas-main" width = "1920" height = "1024" style = "width: 100%; height: 100%;"></canvas>
         </div>
-        <div style="background-color: Green; display: flex; flex-direction: column;">
-            <h3 style="text-align: center">
+        <div style="display: flex; flex-direction: column; width: 20%;">
+            <h3 style="text-align: center;">
                 Shortcuts
             </h3>
             <p>
