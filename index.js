@@ -13,8 +13,9 @@ let context = null;
 const COORD_SIZE = 1024;
 const COORD_X_OFFSET = 448;
 
-let cellsInRow = 20;
-let cellsInCol = 20;
+let newMapRequested = false;
+let cellsInRow = 10;
+let cellsInCol = 10;
 
 let imgFloor = new Image();
 imgFloor.isReady = false;
@@ -23,23 +24,24 @@ imgFloor.onload = function() {
 };
 imgFloor.src = 'floor.png';
 
-let maze = [];
+function generateMaze(cellsInRow, cellsInCol){
+    newMapRequested = false;
+    let maze = [];
 
-for (let row = 0; row < cellsInRow; row++) {
-    maze.push([]);
-    for (let col = 0; col < cellsInCol; col++) {
-        maze[row].push({
-            x: col, y: row, added: false, edges: {
-                north: null,
-                south: null,
-                east: null,
-                west: null
-            }
-        });
+    for (let row = 0; row < cellsInRow; row++) {
+        maze.push([]);
+        for (let col = 0; col < cellsInCol; col++) {
+            maze[row].push({
+                x: col, y: row, added: false, edges: {
+                    north: null,
+                    south: null,
+                    east: null,
+                    west: null
+                }
+            });
+        }
     }
-}
 
-function generateMaze(){
     frontier = [];
 
     maze[0][0].added = true;
@@ -49,7 +51,6 @@ function generateMaze(){
     while(frontier.length > 0){
         let randomIndex = Math.floor(Math.random() * frontier.length);
         let cellToBeAdded = frontier[randomIndex];
-        console.log(cellToBeAdded);
 
         // Randomly select and remove an edge connecting the cell to be added to cells already existing in the maze
         let edgeRemoved = false;
@@ -106,6 +107,17 @@ function generateMaze(){
             frontier.push(maze[cellToBeAdded.y][cellToBeAdded.x + 1]);
         }
     }
+
+    return maze;
+}
+
+let myMaze = generateMaze(cellsInRow, cellsInCol);
+
+function newMap(rowWidth, colHeight){
+    cellsInRow = rowWidth;
+    cellsInCol = colHeight;
+
+    newMapRequested = true;
 }
 
 
@@ -181,7 +193,7 @@ function renderMaze() {
     context.beginPath();
     for (let row = 0; row < cellsInRow; row++) {
         for (let col = 0; col < cellsInCol; col++) {
-            drawCell(maze[row][col]);
+            drawCell(myMaze[row][col]);
         }
     }
     context.strokeStyle = 'rgb(255, 255, 255)';
@@ -199,7 +211,7 @@ function renderMaze() {
     context.stroke();
 }
 
-let myCharacter = function(imageSource, location) {
+function resetCharacter(imageSource, location) {
     let image = new Image();
     image.isReady = false;
     image.onload = function() {
@@ -210,7 +222,9 @@ let myCharacter = function(imageSource, location) {
         location: location,
         image: image
     };
-}('character.png', maze[0][0]);
+}
+
+let myCharacter = resetCharacter('character.png', myMaze[0][0]);
 
 function updateTimer() {
     let now = performance.now();
@@ -236,8 +250,6 @@ function initialize() {
 
     canvas = document.getElementById('canvas-main');
     context = canvas.getContext('2d');
-
-    generateMaze();
 
     window.addEventListener('keydown', function(event) {
         inputBuffer[event.key] = event.key;
@@ -265,6 +277,13 @@ function processInput(){
 
 function update() {
     updateTimer();
+
+    if (newMapRequested){
+        score = 1000;
+        myMaze = generateMaze(cellsInRow, cellsInCol);
+        myCharacter = resetCharacter('character.png', myMaze[0][0]);
+        startTime = performance.now();
+    }
 }
 
 function render() {
