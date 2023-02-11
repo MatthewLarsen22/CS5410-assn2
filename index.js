@@ -1,6 +1,14 @@
 let inputBuffer = {};
+let startTime = null;
+let timerDisplay = null;
+let minutes = null;
+let seconds = null;
+
+let score = 1000;
+
 let canvas = null;
 let context = null;
+
 
 const COORD_SIZE = 1000;
 
@@ -91,22 +99,29 @@ function moveCharacter(key, character) {
     if (key === 'ArrowDown') {
         if (character.location.edges.south) {
             character.location = character.location.edges.south;
+            score -= 5;
         }
     }
     if (key === 'ArrowUp') {
         if (character.location.edges.north) {
             character.location = character.location.edges.north;
+            score -= 5;
         }
     }
     if (key === 'ArrowRight') {
         if (character.location.edges.east) {
             character.location = character.location.edges.east;
+            score -= 5;
         }
     }
     if (key === 'ArrowLeft') {
         if (character.location.edges.west) {
             character.location = character.location.edges.west;
+            score -= 5;
         }
+    }
+    if (score < 0) {
+        score = 0;
     }
 }
 
@@ -146,7 +161,32 @@ let myCharacter = function(imageSource, location) {
     };
 }('character.png', maze[0][0]);
 
+function updateTimer() {
+    let now = performance.now();
+    minutes = Math.floor((now - startTime) / (60 * 1000));
+    seconds = Math.floor(((now - startTime) / 1000) % 60);
+
+    if (minutes < 10) {
+        minutes = "0" + minutes;
+    }
+
+    if (seconds < 10) {
+        seconds = "0" + seconds;
+    }
+}
+
+function renderTimer() {
+    timerDisplay.innerHTML = "Time: " + minutes + ":" + seconds;
+}
+
+function renderScore() {
+    scoreDisplay.innerHTML = "Score: " + score;
+}
+
 function initialize() {
+    timerDisplay = document.getElementById('timer');
+    scoreDisplay = document.getElementById('score');
+
     canvas = document.getElementById('canvas-main');
     context = canvas.getContext('2d');
 
@@ -154,12 +194,14 @@ function initialize() {
         inputBuffer[event.key] = event.key;
     });
 
+    let startTime = performance.now();
+
     requestAnimationFrame(gameLoop);
 }
 
 function gameLoop() {
     processInput();
-    //update();
+    update();
     render();
 
     window.requestAnimationFrame(gameLoop);
@@ -172,9 +214,15 @@ function processInput(){
     inputBuffer = {};
 }
 
+function update() {
+    updateTimer();
+}
+
 function render() {
     context.clearRect(0, 0, canvas.width, canvas.height);
 
+    renderTimer();
+    renderScore();
     renderMaze();
     renderCharacter(myCharacter);
 }
