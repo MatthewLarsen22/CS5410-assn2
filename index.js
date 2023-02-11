@@ -10,7 +10,8 @@ let canvas = null;
 let context = null;
 
 
-const COORD_SIZE = 1000;
+const COORD_SIZE = 1024;
+const COORD_X_OFFSET = 448;
 
 let imgFloor = new Image();
 imgFloor.isReady = false;
@@ -63,35 +64,35 @@ function drawCell(cell) {
 
     if (imgFloor.isReady) {
         context.drawImage(imgFloor,
-        cell.x * (COORD_SIZE / 3), cell.y * (COORD_SIZE / 3),
+        COORD_X_OFFSET + (cell.x * (COORD_SIZE / 3)), cell.y * (COORD_SIZE / 3),
         COORD_SIZE / 3 + 0.5, COORD_SIZE / 3 + 0.5);
     }
 
     if (cell.edges.north === null) {
-        context.moveTo(cell.x * (COORD_SIZE / 3), cell.y * (COORD_SIZE / 3));
-        context.lineTo((cell.x + 1) * (COORD_SIZE / 3), cell.y * (COORD_SIZE / 3));
+        context.moveTo(COORD_X_OFFSET + (cell.x * (COORD_SIZE / 3)), cell.y * (COORD_SIZE / 3));
+        context.lineTo(COORD_X_OFFSET + ((cell.x + 1) * (COORD_SIZE / 3)), cell.y * (COORD_SIZE / 3));
     }
 
     if (cell.edges.south === null) {
-            context.moveTo(cell.x * (COORD_SIZE / 3), (cell.y + 1) * (COORD_SIZE / 3));
-            context.lineTo((cell.x + 1) * (COORD_SIZE / 3), (cell.y + 1) * (COORD_SIZE / 3));
+            context.moveTo(COORD_X_OFFSET + (cell.x * (COORD_SIZE / 3)), (cell.y + 1) * (COORD_SIZE / 3));
+            context.lineTo(COORD_X_OFFSET + ((cell.x + 1) * (COORD_SIZE / 3)), (cell.y + 1) * (COORD_SIZE / 3));
     }
 
     if (cell.edges.east === null) {
-            context.moveTo((cell.x + 1) * (COORD_SIZE / 3), cell.y * (COORD_SIZE / 3));
-            context.lineTo((cell.x + 1) * (COORD_SIZE / 3), (cell.y + 1) * (COORD_SIZE / 3));
+            context.moveTo(COORD_X_OFFSET + ((cell.x + 1) * (COORD_SIZE / 3)), cell.y * (COORD_SIZE / 3));
+            context.lineTo(COORD_X_OFFSET + ((cell.x + 1) * (COORD_SIZE / 3)), (cell.y + 1) * (COORD_SIZE / 3));
     }
 
     if (cell.edges.west === null) {
-            context.moveTo(cell.x * (COORD_SIZE / 3), cell.y * (COORD_SIZE / 3));
-            context.lineTo(cell.x * (COORD_SIZE / 3), (cell.y + 1) * (COORD_SIZE / 3));
+            context.moveTo(COORD_X_OFFSET + (cell.x * (COORD_SIZE / 3)), cell.y * (COORD_SIZE / 3));
+            context.lineTo(COORD_X_OFFSET + (cell.x * (COORD_SIZE / 3)), (cell.y + 1) * (COORD_SIZE / 3));
     }
 }
 
 function renderCharacter(character) {
     if (character.image.isReady) {
         context.drawImage(character.image,
-        character.location.x * (COORD_SIZE / 3), character.location.y * (COORD_SIZE / 3))
+        COORD_X_OFFSET + (character.location.x * (COORD_SIZE / 3)), character.location.y * (COORD_SIZE / 3))
     }
 }
 
@@ -139,10 +140,10 @@ function renderMaze() {
 
     // Draw a black border around the whole maze
     context.beginPath();
-    context.moveTo(0,0);
-    context.lineTo(COORD_SIZE - 1, 0);
-    context.lineTo(COORD_SIZE - 1, COORD_SIZE - 1);
-    context.lineTo(0, COORD_SIZE - 1);
+    context.moveTo(COORD_X_OFFSET,0);
+    context.lineTo(COORD_X_OFFSET + (COORD_SIZE - 1), 0);
+    context.lineTo(COORD_X_OFFSET + (COORD_SIZE - 1), COORD_SIZE - 1);
+    context.lineTo(COORD_X_OFFSET, COORD_SIZE - 1);
     context.closePath();
     context.strokeStyle = 'rgb(0, 0, 0)';
     context.stroke();
@@ -165,10 +166,6 @@ function updateTimer() {
     let now = performance.now();
     minutes = Math.floor((now - startTime) / (60 * 1000));
     seconds = Math.floor(((now - startTime) / 1000) % 60);
-
-    if (minutes < 10) {
-        minutes = "0" + minutes;
-    }
 
     if (seconds < 10) {
         seconds = "0" + seconds;
