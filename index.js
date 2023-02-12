@@ -20,6 +20,8 @@ let cellsInRow = 10;
 let cellsInCol = 10;
 
 let showBreadcrumbs = false;
+let showHint = false;
+let showPath = false;
 let shortestPath = [];
 
 let gameWon = false;
@@ -174,7 +176,19 @@ function drawCell(cell) {
     // Draw a circle over the cell for breadcrumbs trail if requested
     if (showBreadcrumbs && cell.traversed) {
         context.moveTo(COORD_X_OFFSET + ((cell.x + 0.8) * (COORD_SIZE / cellsInRow)), (cell.y + 0.5) * (COORD_SIZE / cellsInCol));
-        context.arc(COORD_X_OFFSET + ((cell.x + 0.5) * (COORD_SIZE / cellsInRow)), (cell.y + 0.5) * (COORD_SIZE / cellsInCol), 0.6 * COORD_SIZE / (cellsInRow * 2), 0, 2 * Math.PI)
+        context.arc(COORD_X_OFFSET + ((cell.x + 0.5) * (COORD_SIZE / cellsInRow)), (cell.y + 0.5) * (COORD_SIZE / cellsInCol), 0.6 * COORD_SIZE / (cellsInRow * 2), 0, 2 * Math.PI);
+    }
+
+    // Show a hint if requested
+    if (showHint && cell === shortestPath[shortestPath.length - 1]){
+        context.moveTo(COORD_X_OFFSET + ((cell.x + 0.8) * (COORD_SIZE / cellsInRow)), (cell.y + 0.5) * (COORD_SIZE / cellsInCol));
+        context.arc(COORD_X_OFFSET + ((cell.x + 0.5) * (COORD_SIZE / cellsInRow)), (cell.y + 0.5) * (COORD_SIZE / cellsInCol), 0.6 * COORD_SIZE / (cellsInRow * 2), 0, 2 * Math.PI);
+    }
+
+    // Show the fastest path if requested
+    if (showPath && shortestPath.includes(cell)){
+        context.moveTo(COORD_X_OFFSET + ((cell.x + 0.8) * (COORD_SIZE / cellsInRow)), (cell.y + 0.5) * (COORD_SIZE / cellsInCol));
+        context.arc(COORD_X_OFFSET + ((cell.x + 0.5) * (COORD_SIZE / cellsInRow)), (cell.y + 0.5) * (COORD_SIZE / cellsInCol), 0.6 * COORD_SIZE / (cellsInRow * 2), 0, 2 * Math.PI);
     }
 }
 
@@ -191,9 +205,21 @@ function moveCharacter(key, character) {
         if (key === 'b'){
             showBreadcrumbs = !showBreadcrumbs;
         }
+        if (key === 'h') {
+            showHint = !showHint;
+        }
+        if (key === 'p') {
+            showPath = !showPath;
+        }
         if (key === 'ArrowDown') {
             if (character.location.edges.south) {
                 myMaze[character.location.y][character.location.x].traversed = true;
+                if (character.location.edges.south === shortestPath[shortestPath.length - 1]){
+                    shortestPath.pop();
+                }
+                else {
+                    shortestPath.push(character.location);
+                }
                 character.location = character.location.edges.south;
                 score -= 5;
             }
@@ -201,6 +227,12 @@ function moveCharacter(key, character) {
         if (key === 'ArrowUp') {
             if (character.location.edges.north) {
                 myMaze[character.location.y][character.location.x].traversed = true;
+                if (character.location.edges.north === shortestPath[shortestPath.length - 1]){
+                    shortestPath.pop();
+                }
+                else {
+                    shortestPath.push(character.location);
+                }
                 character.location = character.location.edges.north;
                 score -= 5;
             }
@@ -208,6 +240,12 @@ function moveCharacter(key, character) {
         if (key === 'ArrowRight') {
             if (character.location.edges.east) {
                 myMaze[character.location.y][character.location.x].traversed = true;
+                if (character.location.edges.east === shortestPath[shortestPath.length - 1]){
+                    shortestPath.pop();
+                }
+                else {
+                    shortestPath.push(character.location);
+                }
                 character.location = character.location.edges.east;
                 score -= 5;
             }
@@ -215,6 +253,12 @@ function moveCharacter(key, character) {
         if (key === 'ArrowLeft') {
             if (character.location.edges.west) {
                 myMaze[character.location.y][character.location.x].traversed = true;
+                if (character.location.edges.west === shortestPath[shortestPath.length - 1]){
+                    shortestPath.pop();
+                }
+                else {
+                    shortestPath.push(character.location);
+                }
                 character.location = character.location.edges.west;
                 score -= 5;
             }
@@ -320,12 +364,11 @@ function findShortestPath() {
     }
 
     let path = [];
+    path.push(myMaze[cellsInCol-1][cellsInRow - 1]);
     for (let cell = prev[visited.indexOf(myMaze[cellsInCol - 1][cellsInRow - 1])]; cell!= null; cell = prev[visited.indexOf(cell)]){
         path.push(cell);
     }
-
-    path.reverse();
-    path.shift();
+    path.pop();
 
     shortestPath = path;
 }
