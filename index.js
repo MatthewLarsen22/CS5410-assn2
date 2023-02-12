@@ -6,6 +6,8 @@ let minutes = null;
 let seconds = null;
 
 let score = 1000;
+let highScore = -1;
+let highScoreMapSize = {rows: 10, cols: 10}
 
 let canvas = null;
 let context = null;
@@ -16,6 +18,8 @@ const COORD_X_OFFSET = 448;
 let newMapRequested = false;
 let cellsInRow = 10;
 let cellsInCol = 10;
+
+let gameWon = false;
 
 let imgFloor = new Image();
 imgFloor.isReady = false;
@@ -159,32 +163,46 @@ function renderCharacter(character) {
 }
 
 function moveCharacter(key, character) {
-    if (key === 'ArrowDown') {
-        if (character.location.edges.south) {
-            character.location = character.location.edges.south;
-            score -= 5;
+    if (! gameWon){
+        if (key === 'ArrowDown') {
+            if (character.location.edges.south) {
+                character.location = character.location.edges.south;
+                score -= 5;
+            }
+        }
+        if (key === 'ArrowUp') {
+            if (character.location.edges.north) {
+                character.location = character.location.edges.north;
+                score -= 5;
+            }
+        }
+        if (key === 'ArrowRight') {
+            if (character.location.edges.east) {
+                character.location = character.location.edges.east;
+                score -= 5;
+            }
+        }
+        if (key === 'ArrowLeft') {
+            if (character.location.edges.west) {
+                character.location = character.location.edges.west;
+                score -= 5;
+            }
+        }
+        if (score < 0) {
+            score = 0;
+        }
+
+        if (character.location.x === cellsInCol - 1 && character.location.y === cellsInRow - 1){
+            gameWon = true;
+            saveHighScore();
         }
     }
-    if (key === 'ArrowUp') {
-        if (character.location.edges.north) {
-            character.location = character.location.edges.north;
-            score -= 5;
-        }
-    }
-    if (key === 'ArrowRight') {
-        if (character.location.edges.east) {
-            character.location = character.location.edges.east;
-            score -= 5;
-        }
-    }
-    if (key === 'ArrowLeft') {
-        if (character.location.edges.west) {
-            character.location = character.location.edges.west;
-            score -= 5;
-        }
-    }
-    if (score < 0) {
-        score = 0;
+}
+
+function saveHighScore(){
+    if(score > highScore){
+        highScore = score;
+        highScoreMapSize = {rows: cellsInRow, cols: cellsInCol};
     }
 }
 
@@ -227,12 +245,14 @@ function resetCharacter(imageSource, location) {
 let myCharacter = resetCharacter('character.png', myMaze[0][0]);
 
 function updateTimer() {
-    let now = performance.now();
-    minutes = Math.floor((now - startTime) / (60 * 1000));
-    seconds = Math.floor(((now - startTime) / 1000) % 60);
+    if (! gameWon){
+        let now = performance.now();
+        minutes = Math.floor((now - startTime) / (60 * 1000));
+        seconds = Math.floor(((now - startTime) / 1000) % 60);
 
-    if (seconds < 10) {
-        seconds = "0" + seconds;
+        if (seconds < 10) {
+            seconds = "0" + seconds;
+        }
     }
 }
 
@@ -244,9 +264,16 @@ function renderScore() {
     scoreDisplay.innerHTML = "Score: " + score;
 }
 
+function renderHighScore() {
+    highScoreDisplay.innerHTML = "High Score: " + highScore;
+    mapSizeDisplay.innerHTML = "Map Size: " + highScoreMapSize.rows + "x" + highScoreMapSize.cols;
+}
+
 function initialize() {
     timerDisplay = document.getElementById('timer');
     scoreDisplay = document.getElementById('score');
+    highScoreDisplay = document.getElementById('highScore');
+    mapSizeDisplay = document.getElementById('mapSize');
 
     canvas = document.getElementById('canvas-main');
     context = canvas.getContext('2d');
@@ -279,6 +306,7 @@ function update() {
     updateTimer();
 
     if (newMapRequested){
+        gameWon = false;
         score = 1000;
         myMaze = generateMaze(cellsInRow, cellsInCol);
         myCharacter = resetCharacter('character.png', myMaze[0][0]);
@@ -293,4 +321,7 @@ function render() {
     renderScore();
     renderMaze();
     renderCharacter(myCharacter);
+    if (gameWon) {
+        renderHighScore();
+    }
 }
