@@ -200,6 +200,14 @@ function renderCharacter(character) {
     }
 }
 
+function renderGoal(goal) {
+    if(goal.image.isReady) {
+        context.drawImage(goal.image,
+        COORD_X_OFFSET + (goal.location.x * (COORD_SIZE / cellsInRow)), goal.location.y * (COORD_SIZE / cellsInCol),
+        COORD_SIZE / cellsInRow + 0.5, COORD_SIZE / cellsInCol + 0.5);
+    }
+}
+
 function moveCharacter(key, character) {
     if (! gameWon){
         if (key === 'b'){
@@ -319,6 +327,21 @@ function resetCharacter(imageSource, location) {
 
 let myCharacter = resetCharacter('character.png', myMaze[0][0]);
 
+function resetGoal(imageSource, location) {
+    let image = new Image();
+    image.isReady = false;
+    image.onload = function() {
+        this.isReady = true;
+    };
+    image.src = imageSource;
+    return {
+        location: location,
+        image: image
+    };
+}
+
+let myGoal = resetGoal('gold-coin.png', myMaze[cellsInCol-1][cellsInRow-1]);
+
 function updateTimer() {
     if (! gameWon){
         let now = performance.now();
@@ -428,6 +451,7 @@ function render() {
     renderScore();
     renderMaze();
     renderCharacter(myCharacter);
+    renderGoal(myGoal);
     if (gameWon) {
         renderHighScore();
     }
